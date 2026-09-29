@@ -137,9 +137,9 @@ Demo ids: Android `com.identixia.facerecognitionsdk` · iOS `com.identixia.facer
 
 The code below shows how to use the license:
 
-https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Flutter/blob/8978a0c92aaee1c42ff61235af3440e0178abc32/example/lib/core/constants/license.dart#L8-L18
+https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Flutter/blob/72b52df6ba50999cfec657ed6002376c83d36d1f/example/lib/core/constants/license.dart#L8-L18
 
-https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Flutter/blob/8978a0c92aaee1c42ff61235af3440e0178abc32/example/lib/services/sdk_service.dart#L27-L32
+https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Flutter/blob/72b52df6ba50999cfec657ed6002376c83d36d1f/example/lib/services/sdk_service.dart#L27-L32
 
 Capabilities: face recognition (detect / templates / match) and/or passive face liveness. Please [contact us](#-contact) to get a license for **your own app**.
 
