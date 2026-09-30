@@ -76,7 +76,6 @@ class _FaceCaptureState extends State<FaceCapture> {
   bool _initializing = true;
   bool _workerReady = false;
   bool _snapBusy = false;
-  bool _eyesBusy = false;
   bool _showResult = false;
 
   CaptureViewMode _viewMode = CaptureViewMode.noFacePrepare;
@@ -87,7 +86,6 @@ class _FaceCaptureState extends State<FaceCapture> {
   OvalMetrics _frame = const OvalMetrics(width: 720, height: 1280);
   String? _captureUri;
   String? _lastUri;
-  List<FaceBox> _lastEyes = const [];
   CaptureResult? _captureResult;
   int _identityOkSinceMs = 0;
 
@@ -204,7 +202,7 @@ class _FaceCaptureState extends State<FaceCapture> {
         .toList(growable: false);
     boxes = mergeEyes(
       boxes,
-      _lastEyes,
+      const <FaceBox>[],
       swapLeftRight: _s.cameraLens == CameraLens.front,
     );
     final state = checkFace(boxes, _s, _frame);

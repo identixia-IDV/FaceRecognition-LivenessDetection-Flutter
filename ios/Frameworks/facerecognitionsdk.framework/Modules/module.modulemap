@@ -1,0 +1,4 @@
+module facerecognitionsdk {
+  umbrella header "FaceRecognitionSDK.h"
+  export *
+}

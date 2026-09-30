@@ -33,7 +33,7 @@ Identixia Face Recognition SDK — on-device face detect, templates, VideoWorker
     FileUtils.mkdir_p(fw_dir)
     zip = File.join(fw_dir, 'facerecognitionsdk-ios.zip')
     system('curl', '-fsSL', '--connect-timeout', '8', '--retry', '1', '-o', zip,
-           'https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-iOS/releases/download/v1.0.0/facerecognitionsdk-ios.zip')
+           'https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-iOS/releases/latest/download/facerecognitionsdk-ios.zip')
     system('unzip', '-o', '-q', zip, '-d', fw_dir) if File.file?(zip)
   end
 

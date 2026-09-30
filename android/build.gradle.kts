@@ -101,7 +101,7 @@ dependencies {
                     ant.invokeMethod(
                         "get",
                         mapOf(
-                            "src" to "https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Android/releases/download/v1.0.0/facerecognitionsdk-android.zip",
+                            "src" to "https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Android/releases/latest/download/facerecognitionsdk-android.zip",
                             "dest" to zip.absolutePath,
                         ),
                     )
@@ -124,7 +124,7 @@ dependencies {
                 }
             }
             val resolved = fileTree("build/identixia-fetch").matching { include("**/facerecognitionsdk.aar") }.files.firstOrNull()
-                ?: throw GradleException("facerecognitionsdk.aar was not in the v1.0.0 Release zip.")
+                ?: throw GradleException("facerecognitionsdk.aar was not in the Latest Release zip.")
             useLocalMavenAar(resolved)
         }
     }

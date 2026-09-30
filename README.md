@@ -26,17 +26,17 @@ Package: `face_recognition_sdk`. Demo modes: **Enroll · Identify · Capture · 
 
 ## <img src="https://api.iconify.design/lucide/clipboard-list.svg?color=%230F766E" width="24" height="24" alt="" /> Basics
 
-Read this once before cloning. Plugin demos ship a **bundled license** for the sample Android / iOS ids. Production apps need a new key. [Initial commands](#-initial-commands) lists clone → run → activate. The example uses the engines already in this repo. Your app installs tag `v1.0.0`.
+Read this once before cloning. Plugin demos ship a **bundled license** for the sample Android / iOS ids. Production apps need a new key. [Initial commands](#-initial-commands) lists clone → place runtime → run → activate options.
 
 | Topic | Basic information |
 | --- | --- |
 | **Product** | On-device **face recognition** Flutter plugin |
 | **Modes** | Enroll · Identify (1:N) · Capture · Attribute |
 | **API** | Detect · templates · identify · optional passive liveness |
-| **Runtime** | Example uses `example/android/libfacesdk/` and `ios/Frameworks/` when those files are already here. Your app installs tag `v1.0.0` |
+| **Runtime** | Local example engines, or the `v1.0.0` GitHub Release when missing |
 | **Demo id** | `com.identixia.facerecognitionsdk` / `com.identixia.facerecognitionsdk.app` |
-| **Tools** | Flutter · physical arm64 Android / iPhone |
-| **UI** | Four demo modes after Ready |
+| **Tools** | Flutter 3.44+ · physical arm64 Android / iPhone |
+| **UI** | Four demo modes after Ready · package kit `FaceCapture` |
 | **Privacy** | Templates stay on device — no Identixia cloud |
 
 
@@ -62,7 +62,7 @@ Please [contact us](#-contact) to get a license for your own app. The sample alr
 
 ### <img src="https://img.shields.io/badge/-3-0F766E?style=for-the-badge" alt="" /> First capture
 
-Wait until Home = **Ready**, then Camera / Gallery. Confirm Result / About shows a licensed state.
+Wait until Home = **Ready**, then Enroll / Identify / Capture / Attribute.
 
 
 ---
@@ -104,16 +104,14 @@ Wait until Home = **Ready**, then Camera / Gallery. Confirm Result / About shows
 
 ## <img src="https://api.iconify.design/lucide/package.svg?color=%230F766E" width="24" height="24" alt="" /> Install
 
-The example builds with `facerecognitionsdk.aar` in `example/android/libfacesdk/` and the frameworks in `ios/Frameworks/` when those files are already in the clone. Gradle and CocoaPods download the `v1.0.0` GitHub Releases only when a file is missing.
+The example builds with native runtimes already in the clone when present. Gradle / CocoaPods download the `v1.0.0` GitHub Releases only when a file is missing.
 
-Your app:
+- AAR → `example/android/libfacesdk/facerecognitionsdk.aar`
+- iOS → `ios/Frameworks/` (`facerecognitionsdk`, `FaceRecognitionEngine`, `onnxruntime`)
 
-```yaml
-face_recognition_sdk:
-  git:
-    url: https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Flutter.git
-    ref: v1.0.0
-```
+Customer apps depend on `face_recognition_sdk` from this repo at tag `v1.0.0` (Flutter: git dependency; React Native / Ionic: npm / github package). Do **not** use a monorepo `path:` dependency in shipping apps.
+
+Android: keep `packaging { jniLibs { useLegacyPackaging = true } }` so `libFaceRecognitionEngine.so` is extracted for `nativeInitEngine`.
 
 ---
 
@@ -137,9 +135,9 @@ Demo ids: Android `com.identixia.facerecognitionsdk` · iOS `com.identixia.facer
 
 The code below shows how to use the license:
 
-https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Flutter/blob/72b52df6ba50999cfec657ed6002376c83d36d1f/example/lib/core/constants/license.dart#L8-L18
+[https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Flutter/blob/7ecff0aaeab88156283abca007e07f15e9381976/example/lib/core/constants/license.dart#L6-L14](https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Flutter/blob/7ecff0aaeab88156283abca007e07f15e9381976/example/lib/core/constants/license.dart#L6-L14)
 
-https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Flutter/blob/72b52df6ba50999cfec657ed6002376c83d36d1f/example/lib/services/sdk_service.dart#L27-L32
+[https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Flutter/blob/7ecff0aaeab88156283abca007e07f15e9381976/example/lib/services/sdk_service.dart#L28-L39](https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Flutter/blob/7ecff0aaeab88156283abca007e07f15e9381976/example/lib/services/sdk_service.dart#L28-L39)
 
 Capabilities: face recognition (detect / templates / match) and/or passive face liveness. Please [contact us](#-contact) to get a license for **your own app**.
 
@@ -147,14 +145,16 @@ Capabilities: face recognition (detect / templates / match) and/or passive face 
 
 ## <img src="https://api.iconify.design/lucide/puzzle.svg?color=%230F766E" width="24" height="24" alt="" /> Use in your app
 
-Add `face_recognition_sdk` at tag `v1.0.0`, then call activate → init → detect / template / identify from Dart.
+Depend on `face_recognition_sdk` via git (`ref: v1.0.0`), set Android `useLegacyPackaging = true`, then use `FaceCapture` / activate → init → detect / template / identify.
+
+Typical flow: depend on `face_recognition_sdk` at `v1.0.0` → ship / download native runtimes → activate → init → enroll / identify / capture. Prefer package kits (`FaceCapture`, …) over reinventing the camera UI. Keep demo ids only while using sample licenses.
 
 | Step | Detail |
 | --- | --- |
-| 1 | Git dependency on this repo, ref `v1.0.0` |
-| 2 | `flutter pub get`, then run on a physical device |
-| 3 | Activate → init |
-| 4 | Enroll / Identify (1:N) / Capture / Attribute, plus liveness when licensed |
+| 1 | Depend on `face_recognition_sdk` at tag `v1.0.0` (standalone clone — no monorepo `path:`) |
+| 2 | Keep or download Android AAR + iOS frameworks (`v1.0.0` Release) |
+| 3 | Activate → init on a physical device (`useLegacyPackaging = true` on Android) |
+| 4 | Wire Enroll / Identify (1:N) / Capture / Attribute (+ liveness if licensed) |
 
 ---
 
