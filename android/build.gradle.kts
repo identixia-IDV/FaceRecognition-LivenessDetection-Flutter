@@ -62,43 +62,49 @@ kotlin {
 }
 
 
+// AGP forbids implementation(files("…aar")) on an Android library (plugin) module —
+// :face_recognition_sdk:bundleDebugAar would fail. Always consume the runtime via a
+// flat :libfacesdk artifact module (see example/android/libfacesdk).
+val libfacesdk = findProject(":libfacesdk")
+
 dependencies {
     implementation("androidx.exifinterface:exifinterface:1.3.7")
 
-
-    // AGP forbids implementation(files("…aar")) on an Android library (plugin) module —
-    // :face_recognition_sdk:bundleDebugAar would fail. Always consume the runtime via a
-    // flat :libfacesdk artifact module (see example/android/libfacesdk).
-    val libfacesdk = findProject(":libfacesdk")
     val bundledAar = file("libs/facerecognitionsdk.aar")
+    fun useLocalMavenAar(source: java.io.File) {
+        val maven = file("build/identixia-maven/com/identixia/facerecognitionsdk/1.0.0")
+        maven.mkdirs()
+        source.copyTo(maven.resolve("facerecognitionsdk-1.0.0.aar"), overwrite = true)
+        maven.resolve("facerecognitionsdk-1.0.0.pom").writeText(
+            """
+            <project>
+              <modelVersion>4.0.0</modelVersion>
+              <groupId>com.identixia</groupId>
+              <artifactId>facerecognitionsdk</artifactId>
+              <version>1.0.0</version>
+              <packaging>aar</packaging>
+            </project>
+            """.trimIndent()
+        )
+        implementation("com.identixia:facerecognitionsdk:1.0.0")
+    }
+
     when {
         libfacesdk != null -> implementation(project(":libfacesdk"))
-        bundledAar.exists() ->
-            throw GradleException(
-                """
-                Found android/libs/facerecognitionsdk.aar, but Flutter/AGP cannot link a
-                local .aar with implementation(files(…)) from a plugin library module.
-
-
-                Demo app: put the AAR in example/android/libfacesdk/facerecognitionsdk.aar
-                (settings.gradle.kts already includes :libfacesdk).
-
-
-                Your own app: copy example/android/libfacesdk/ into your Android project,
-                place facerecognitionsdk.aar there, and add include(":libfacesdk") to
-                settings.gradle — then depend on this plugin as usual.
-                """.trimIndent()
-            )
+        bundledAar.exists() -> useLocalMavenAar(bundledAar)
         else -> {
             val aar = file("build/identixia-fetch/facerecognitionsdk.aar")
             if (!aar.exists()) {
                 aar.parentFile.mkdirs()
-                val url = java.net.URI(
-                    "https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Android/releases/download/v1.0.0/facerecognitionsdk-android.zip"
-                ).toURL()
+                val zip = file("build/identixia-fetch/facerecognitionsdk-android.zip")
                 try {
-                    val zip = file("build/identixia-fetch/facerecognitionsdk-android.zip")
-                    url.openStream().use { input -> zip.outputStream().use { input.copyTo(it) } }
+                    ant.invokeMethod(
+                        "get",
+                        mapOf(
+                            "src" to "https://github.com/identixia-IDV/FaceRecognition-LivenessDetection-Android/releases/download/v1.0.0/facerecognitionsdk-android.zip",
+                            "dest" to zip.absolutePath,
+                        ),
+                    )
                     copy {
                         from(zipTree(zip))
                         into(file("build/identixia-fetch"))
@@ -119,21 +125,34 @@ dependencies {
             }
             val resolved = fileTree("build/identixia-fetch").matching { include("**/facerecognitionsdk.aar") }.files.firstOrNull()
                 ?: throw GradleException("facerecognitionsdk.aar was not in the v1.0.0 Release zip.")
-            val maven = file("build/identixia-maven/com/identixia/facerecognitionsdk/1.0.0")
-            maven.mkdirs()
-            resolved.copyTo(maven.resolve("facerecognitionsdk-1.0.0.aar"), overwrite = true)
-            maven.resolve("facerecognitionsdk-1.0.0.pom").writeText(
-                """
-                <project>
-                  <modelVersion>4.0.0</modelVersion>
-                  <groupId>com.identixia</groupId>
-                  <artifactId>facerecognitionsdk</artifactId>
-                  <version>1.0.0</version>
-                  <packaging>aar</packaging>
-                </project>
-                """.trimIndent()
-            )
-            implementation("com.identixia:facerecognitionsdk:1.0.0")
+            useLocalMavenAar(resolved)
         }
     }
+}
+
+// Engine packs (.xdb) are not inside the AAR — same as Android install.gradle.
+// Stage them as assets/facerecognitionsdk/ so every consumer APK (example, *-Test) can init.
+fun File.hasXdb(): Boolean =
+    isDirectory && listFiles()?.any { it.isFile && it.name.endsWith(".xdb") } == true
+
+val faceDbSrc: File? =
+    sequenceOf(
+        libfacesdk?.let { File(it.projectDir, "databases") },
+        file("libs/databases"),
+        file("build/identixia-fetch/databases"),
+    ).filterNotNull().firstOrNull { it.hasXdb() }
+
+if (faceDbSrc != null) {
+    val packsOut = file("build/generated/identixiaAssets")
+    val dest = packsOut.resolve("facerecognitionsdk")
+    dest.mkdirs()
+    faceDbSrc.listFiles()
+        ?.filter { it.isFile && it.name.endsWith(".xdb") }
+        ?.forEach { src ->
+            val out = dest.resolve(src.name)
+            if (!out.exists() || out.length() != src.length()) {
+                src.copyTo(out, overwrite = true)
+            }
+        }
+    android.sourceSets.getByName("main").assets.srcDir(packsOut)
 }
